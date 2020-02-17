@@ -3,7 +3,7 @@
 
 #define MOD Mod4Mask
 
-#define MARGIN 20
+#define GAP 20
 
 /* Utilities */
 
