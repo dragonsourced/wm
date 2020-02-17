@@ -402,13 +402,13 @@ void tile(void)
 
 	for win if (can_tile(c) && c != master) ++num;
 
-	int mw = sw - GAP * 2, mh = sh - GAP;
+	int mw = sw - GAP * 2, mh = sh - GAP * 2;
 	int x = GAP, y = GAP;
 
 	if (master) {
 		if (num > 0) {
 			mw -= master_size + GAP;
-			XMoveResizeWindow(d, master->w, x, y, master_size, mh - GAP);
+			XMoveResizeWindow(d, master->w, x, y, master_size, mh);
 			x += master_size + GAP;
 		} else {
 			XMoveResizeWindow(d, master->w, x, y, mw, mh);
@@ -417,7 +417,7 @@ void tile(void)
 
 	if (num > 0) {
 		int w = mw - GAP;
-		int h = mh/num - GAP;
+		int h = (mh - (GAP * (num - 1))) / num;
 		for win if (can_tile(c) && c != master) {
 			XMoveResizeWindow(d, c->w, x, y, w, h);
 			y += h + GAP;
