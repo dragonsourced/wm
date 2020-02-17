@@ -89,10 +89,17 @@ void notify_motion(XEvent *e)
 	XMoveResizeWindow(d, mouse.subwindow, nx, ny, nw, nh);
 }
 
-void win_float(const Arg arg)
+void win_mode(const Arg arg)
 {
 	if (cur) {
-		cur->mode = MODE_FLOATING;
+		switch (cur->mode) {
+		case MODE_TILING:
+			cur->mode = MODE_FLOATING;
+			break;
+		case MODE_FLOATING:
+			cur->mode = MODE_TILING;
+			break;
+		}
 		tile();
 	}
 }
@@ -194,7 +201,10 @@ void win_center(const Arg arg)
 	if (!cur)
 		return;
 
-	win_float(arg);
+	if (cur->mode == MODE_TILING) {
+		cur->mode = MODE_FLOATING;
+		tile();
+	}
 
 	win_size(cur->w, &(int) { 0 }, &(int) { 0 }, &ww, &wh);
 	XMoveWindow(d, cur->w, (sw - ww) / 2, (sh - wh) / 2);
