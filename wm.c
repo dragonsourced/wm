@@ -425,8 +425,6 @@ void tile(void)
 	}
 }
 
-
-
 int main(void)
 {
 	XEvent ev;
