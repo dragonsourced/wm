@@ -329,6 +329,8 @@ void map_request(XEvent *e)
 	win_add(w);
 	cur = list->prev;
 
+	if (wx + wy == 0) win_center((Arg){0});
+
 	XMapWindow(d, w);
 	win_focus(list->prev);
 	tile();
