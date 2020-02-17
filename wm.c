@@ -444,7 +444,7 @@ int main(void)
 	sh = XDisplayHeight(d, s);
 
 	for (int i = 0; i < WS; ++i)
-		ws_master_size[ws] = sw / 2;
+		ws_master_size[i] = sw / 2;
 
 	XSelectInput(d, root, SubstructureRedirectMask);
 	XDefineCursor(d, root, XCreateFontCursor(d, 68));
