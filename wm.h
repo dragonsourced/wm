@@ -25,6 +25,12 @@ struct key {
 	const Arg arg;
 };
 
+enum tile_mode {
+	TILE_HORIZONTAL,
+	TILE_VERTICAL,
+	TILE_MODES
+};
+
 enum client_mode {
 	MODE_FLOATING,
 	MODE_TILING
@@ -62,6 +68,7 @@ void win_next_tiled(const Arg arg);
 void win_to_ws(const Arg arg);
 void win_mode(const Arg arg);
 void ws_go(const Arg arg);
+void ws_mode(const Arg arg);
 void quit(const Arg arg);
 void resize_master(const Arg arg);
 void tile(void);

@@ -18,6 +18,7 @@ static int ws = 1, sw, sh, wx, wy, numlock = 0;
 static unsigned int ww, wh;
 
 static unsigned int ws_master_size[WS];
+static enum tile_mode ws_tile_mode[WS];
 static client *master;
 
 static Display *d;
@@ -408,24 +409,57 @@ void tile(void)
 	int mw = sw - GAP * 2, mh = sh - GAP * 2;
 	int x = GAP, y = GAP;
 
-	if (master) {
-		if (num > 0) {
-			mw -= ws_master_size[ws] + GAP;
-			XMoveResizeWindow(d, master->w, x, y, ws_master_size[ws], mh);
-			x += ws_master_size[ws] + GAP;
-		} else {
-			XMoveResizeWindow(d, master->w, x, y, mw, mh);
+	switch (ws_tile_mode[ws]) {
+	case TILE_HORIZONTAL:
+		if (master) {
+			if (num > 0) {
+				mw -= ws_master_size[ws] + GAP;
+				XMoveResizeWindow(d, master->w, x, y, ws_master_size[ws], mh);
+				x += ws_master_size[ws] + GAP;
+			} else {
+				XMoveResizeWindow(d, master->w, x, y, mw, mh);
+			}
 		}
-	}
 
-	if (num > 0) {
-		int w = mw - GAP;
-		int h = (mh - (GAP * (num - 1))) / num;
-		for win if (can_tile(c) && c != master) {
-			XMoveResizeWindow(d, c->w, x, y, w, h);
-			y += h + GAP;
+		if (num > 0) {
+			int w = mw - GAP;
+			int h = (mh - (GAP * (num - 1))) / num;
+			for win if (can_tile(c) && c != master) {
+				XMoveResizeWindow(d, c->w, x, y, w, h);
+				y += h + GAP;
+			}
 		}
+		break;
+	case TILE_VERTICAL:
+		if (master) {
+			if (num > 0) {
+				mh -= ws_master_size[ws] + GAP;
+				XMoveResizeWindow(d, master->w, x, y, mw, ws_master_size[ws]);
+				y += ws_master_size[ws] + GAP;
+			} else {
+				XMoveResizeWindow(d, master->w, x, y, mw, mh);
+			}
+		}
+
+		if (num > 0) {
+			int w = (mw - (GAP * (num - 1))) / num;
+			int h = mh - GAP;
+			for win if (can_tile(c) && c != master) {
+				XMoveResizeWindow(d, c->w, x, y, w, h);
+				x += w + GAP;
+			}
+		}
+		break;
+	default:
+		break;
 	}
+}
+
+void ws_mode(const Arg arg)
+{
+	++ws_tile_mode[ws];
+	if (ws_tile_mode[ws] >= TILE_MODES) ws_tile_mode[ws] = TILE_HORIZONTAL;
+	tile();
 }
 
 int main(void)
@@ -443,8 +477,10 @@ int main(void)
 	sw = XDisplayWidth(d, s);
 	sh = XDisplayHeight(d, s);
 
-	for (int i = 0; i < WS; ++i)
+	for (int i = 0; i < WS; ++i) {
 		ws_master_size[i] = sw / 2;
+		ws_tile_mode[i]   = TILE_HORIZONTAL;
+	}
 
 	XSelectInput(d, root, SubstructureRedirectMask);
 	XDefineCursor(d, root, XCreateFontCursor(d, 68));
