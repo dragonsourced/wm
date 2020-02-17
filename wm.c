@@ -89,7 +89,7 @@ void win_master(const Arg arg)
 
 	master[ws] = cur;
 	tile();
-	win_focus(cur);
+	win_focus(master[ws]);
 }
 
 void win_mode(const Arg arg)
@@ -165,9 +165,6 @@ void win_del(Window w)
 {
 	client *x = 0;
 
-	if (w == master[ws]->w)
-		master[ws] = NULL;
-
 	for win
 		if (c->w == w)
 			x = c;
@@ -182,6 +179,9 @@ void win_del(Window w)
 		x->next->prev = x->prev;
 	if (x->prev)
 		x->prev->next = x->next;
+
+	if (x == master[ws])
+		master[ws] = NULL;
 
 	free(x);
 	ws_save(ws);
@@ -442,15 +442,15 @@ void tile(void)
 	struct client *clients[MAX_CLIENTS] = { NULL };
 	const int num = tiled_clients(clients, MAX_CLIENTS);
 
-	if (master[ws] == NULL) master[ws] = clients[0];
+	if (master[ws] == NULL && num > 0) master[ws] = clients[0];
 
 	int mw = sw - GAP, mh = sh - GAP;
 	int w, h, x = GAP, y = GAP;
 
-	if (num < 1) goto tiled;
+	if (num < 1) return;
 	else if (num == 1) {
 		XMoveResizeWindow(d, clients[0]->w, x, y, mw - GAP, mh - GAP);
-		goto tiled;
+		return;
 	}
 
 	switch (ws_tile_mode[ws]) {
@@ -475,7 +475,6 @@ void tile(void)
 		}
 
 		break;
-tiled:
 	default:
 		break;
 	}
@@ -503,7 +502,14 @@ int main(void)
 	sh = XDisplayHeight(d, s);
 
 	for (int i = 0; i < WS; ++i) {
-		ws_master_size[i] = sw / 2;
+		switch (ws_tile_mode[i]) {
+		case TILE_VERTICAL:
+			ws_master_size[i] = sh / 2;
+			break;
+		default:
+			ws_master_size[i] = sw / 2;
+			break;
+		}
 		ws_tile_mode[i]   = TILE_HORIZONTAL;
 	}
 
