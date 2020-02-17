@@ -104,14 +104,6 @@ void win_mode(const Arg arg)
 	}
 }
 
-void win_tile(const Arg arg)
-{
-	if (cur) {
-		cur->mode = MODE_TILING;
-		tile();
-	}
-}
-
 void key_press(XEvent *e)
 {
 	KeySym keysym = XkbKeycodeToKeysym(d, e->xkey.keycode, 0, 0);
