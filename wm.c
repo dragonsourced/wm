@@ -402,7 +402,7 @@ void tile(void)
 
 	for win if (can_tile(c) && c != master) ++num;
 
-	int mw = sw - GAP * 2, mh = sh - GAP * 2;
+	int mw = sw - GAP * 2, mh = sh - GAP;
 	int x = GAP, y = GAP;
 
 	if (master) {
