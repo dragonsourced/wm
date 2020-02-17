@@ -35,9 +35,6 @@ static struct key keys[] = {
 	{ MOD,             XK_f,      win_fs,     {0} },
 	{ MOD | ShiftMask, XK_q,      quit,       {0} },
 
-	{ MOD, XK_Left,  resize_master, {.i = -5} },
-	{ MOD, XK_Right, resize_master, {.i =  5} },
-
 	{ Mod1Mask,             XK_Tab, win_next, {0} },
 	{ Mod1Mask | ShiftMask, XK_Tab, win_prev, {0} },
 	{ MOD,             XK_Tab, win_next, {0} },
@@ -45,13 +42,15 @@ static struct key keys[] = {
 
 	{ MOD, XK_j, win_next_tiled, {0} },
 	{ MOD, XK_k, win_prev_tiled, {0} },
+	{ MOD, XK_h, resize_master, {.i = -5} },
+	{ MOD, XK_l, resize_master, {.i =  5} },
 
 	{ MOD,             XK_space, run, {.com = layout_next} },
 	{ MOD | ShiftMask, XK_space, run, {.com = layout_prev} },
 
 	{ MOD, XK_r,      run, {.com = rss} },
 	{ MOD, XK_t,      run, {.com = theme} },
-	{ MOD, XK_l,      run, {.com = lock} },
+	{ MOD | ShiftMask, XK_l, run, {.com = lock} },
 
 	{ MOD, XK_p,      run, {.com = menu} },
 	{ MOD, XK_s,      run, {.com = scrot} },
