@@ -10,10 +10,13 @@ config.h:
 	cp config.def.h config.h
 
 wm: wm.o
-	$(CC) $(LDFLAGS) -O3 -o $@ $+ -lX11
+	$(CC) $(LDFLAGS) -O3 -o wm wm.c -lX11
 
 install: all
 	install -Dm755 wm $(DESTDIR)$(BINDIR)/wm
+
+uninstall:
+	rm -f $(DESTDIR)$(BINDIR)/wm
 
 clean:
 	rm -f wm *.o
