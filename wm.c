@@ -408,7 +408,7 @@ void tile(void)
 	if (master) {
 		if (num > 0) {
 			mw -= master_size + GAP;
-			XMoveResizeWindow(d, master->w, x, y, master_size, mh);
+			XMoveResizeWindow(d, master->w, x, y, master_size, mh - GAP);
 			x += master_size + GAP;
 		} else {
 			XMoveResizeWindow(d, master->w, x, y, mw, mh);
