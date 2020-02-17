@@ -44,6 +44,9 @@ typedef struct client {
 	Window w;
 } client;
 
+#define MAX_CLIENTS 50
+unsigned int tiled_clients(struct client **, const unsigned int);
+
 void button_press(XEvent *e);
 void button_release(XEvent *e);
 int  can_tile(client *c);
@@ -66,6 +69,7 @@ void win_next(const Arg arg);
 void win_prev_tiled(const Arg arg);
 void win_next_tiled(const Arg arg);
 void win_to_ws(const Arg arg);
+void win_master(const Arg arg);
 void win_mode(const Arg arg);
 void ws_go(const Arg arg);
 void ws_mode(const Arg arg);

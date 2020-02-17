@@ -19,7 +19,7 @@ static unsigned int ww, wh;
 
 static unsigned int ws_master_size[WS];
 static enum tile_mode ws_tile_mode[WS];
-static client *master;
+static client *master[WS];
 
 static Display *d;
 static XButtonEvent mouse;
@@ -49,8 +49,6 @@ void notify_destroy(XEvent *e)
 
 	if (list)
 		win_focus(list->prev);
-
-	tile();
 }
 
 void notify_enter(XEvent *e)
@@ -82,6 +80,16 @@ void notify_motion(XEvent *e)
 			wy + (mouse.button == 1 ? yd : 0),
 			ww + (mouse.button == 3 ? xd : 0),
 			wh + (mouse.button == 3 ? yd : 0));
+}
+
+void win_master(const Arg arg)
+{
+	if (!cur || !can_tile(cur))
+		return;
+
+	master[ws] = cur;
+	tile();
+	win_focus(cur);
 }
 
 void win_mode(const Arg arg)
@@ -156,6 +164,9 @@ void win_add(Window w)
 void win_del(Window w)
 {
 	client *x = 0;
+
+	if (w == master[ws]->w)
+		master[ws] = NULL;
 
 	for win
 		if (c->w == w)
@@ -255,28 +266,46 @@ void win_next(const Arg arg)
 
 void win_prev_tiled(const Arg arg)
 {
-	client *c = cur;
+	client *cs[MAX_CLIENTS];
+	int i, num;
 
 	if (!cur) return;
 
-	c = c->prev;
-	while (c && !can_tile(c) && c != cur) c = c->prev;
-	if (!c) return;
+	num = tiled_clients(cs, MAX_CLIENTS);
 
-	win_focus(c);
+	if (num > 0 && cs[0] == cur) {
+		win_focus(cs[num - 1]);
+		return;
+	}
+
+	for (i = 0; i < num - 1; ++i) {
+		if (cs[i + 1] == cur) {
+			win_focus(cs[i]);
+			break;
+		}
+	}
 }
 
 void win_next_tiled(const Arg arg)
 {
-	client *c = cur;
+	client *cs[MAX_CLIENTS];
+	int i, num;
 
 	if (!cur) return;
 
-	c = c->next;
-	while (c && !can_tile(c) && c != cur) c = c->next;
-	if (!c) return;
+	num = tiled_clients(cs, MAX_CLIENTS);
 
-	win_focus(c);
+	if (num > 0 && cs[num - 1] == cur) {
+		win_focus(cs[0]);
+		return;
+	}
+
+	for (i = 1; i < num; ++i) {
+		if (cs[i - 1] == cur) {
+			win_focus(cs[i]);
+			break;
+		}
+	}
 }
 
 void ws_go(const Arg arg)
@@ -393,63 +422,51 @@ void resize_master(const Arg arg)
 	tile();
 }
 
+unsigned int tiled_clients(struct client **cs, const unsigned int clientc)
+{
+	unsigned int i = 0;
+
+	if (master[ws] != NULL && clientc > 0)
+		cs[i++] = master[ws];
+
+	for win {
+		if (i > clientc) return i;
+		if (can_tile(c) && c != master[ws]) cs[i++] = c;
+	}
+
+	return i;
+}
+
 void tile(void)
 {
-	int num = 0;
+	struct client *clients[MAX_CLIENTS] = { NULL };
+	const int num = tiled_clients(clients, MAX_CLIENTS);
 
-	master = list;
+	if (master[ws] == NULL) master[ws] = clients[0];
 
-	while (master && !can_tile(master) && master->next != list)
-		master = master->next;
+	int mw = sw - GAP, mh = sh - GAP;
+	int w, h, x = GAP, y = GAP;
 
-	if (!can_tile(master)) master = NULL;
-
-	for win if (can_tile(c) && c != master) ++num;
-
-	int mw = sw - GAP * 2, mh = sh - GAP * 2;
-	int x = GAP, y = GAP;
+	if (num < 1) goto tiled;
+	else if (num == 1) {
+		XMoveResizeWindow(d, clients[0]->w, x, y, mw - GAP, mh - GAP);
+		goto tiled;
+	}
 
 	switch (ws_tile_mode[ws]) {
 	case TILE_HORIZONTAL:
-		if (master) {
-			if (num > 0) {
-				mw -= ws_master_size[ws] + GAP;
-				XMoveResizeWindow(d, master->w, x, y, ws_master_size[ws], mh);
-				x += ws_master_size[ws] + GAP;
-			} else {
-				XMoveResizeWindow(d, master->w, x, y, mw, mh);
-			}
-		}
-
-		if (num > 0) {
-			int w = mw - GAP;
-			int h = (mh - (GAP * (num - 1))) / num;
-			for win if (can_tile(c) && c != master) {
-				XMoveResizeWindow(d, c->w, x, y, w, h);
-				y += h + GAP;
-			}
+		XMoveResizeWindow(d, clients[0]->w, x, y, ws_master_size[ws], mh - GAP);
+		x  += ws_master_size[ws] + GAP;
+		w = mw - ws_master_size[ws] - GAP;
+		h = mh/(num - 1);
+		for (int i = 1; i < num; ++i) {
+			XMoveResizeWindow(d, clients[i]->w, x, y, w - GAP, h - GAP);
+			y += h;
 		}
 		break;
 	case TILE_VERTICAL:
-		if (master) {
-			if (num > 0) {
-				mh -= ws_master_size[ws] + GAP;
-				XMoveResizeWindow(d, master->w, x, y, mw, ws_master_size[ws]);
-				y += ws_master_size[ws] + GAP;
-			} else {
-				XMoveResizeWindow(d, master->w, x, y, mw, mh);
-			}
-		}
-
-		if (num > 0) {
-			int w = (mw - (GAP * (num - 1))) / num;
-			int h = mh - GAP;
-			for win if (can_tile(c) && c != master) {
-				XMoveResizeWindow(d, c->w, x, y, w, h);
-				x += w + GAP;
-			}
-		}
 		break;
+tiled:
 	default:
 		break;
 	}
@@ -457,8 +474,7 @@ void tile(void)
 
 void ws_mode(const Arg arg)
 {
-	++ws_tile_mode[ws];
-	if (ws_tile_mode[ws] >= TILE_MODES) ws_tile_mode[ws] = TILE_HORIZONTAL;
+	ws_tile_mode[ws] = arg.i;
 	tile();
 }
 

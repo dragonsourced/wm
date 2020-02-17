@@ -33,7 +33,9 @@ static struct key keys[] = {
 	{ MOD | ShiftMask, XK_Return, win_mode,   {0} },
 	{ MOD,             XK_c,      win_center, {0} },
 	{ MOD,             XK_f,      win_fs,     {0} },
-	{ MOD,             XK_m,      ws_mode,    {0} },
+	{ MOD,             XK_m,      win_master, {0} },
+	{ MOD,             XK_h,      ws_mode,    {.i = TILE_HORIZONTAL} },
+	{ MOD,             XK_v,      ws_mode,    {.i = TILE_VERTICAL} },
 	{ MOD | ShiftMask, XK_q,      quit,       {0} },
 
 	{ Mod1Mask,             XK_Tab, win_next, {0} },
