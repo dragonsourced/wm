@@ -70,10 +70,8 @@ void notify_motion(XEvent *e)
 	int xd = e->xbutton.x_root - mouse.x_root;
 	int yd = e->xbutton.y_root - mouse.y_root;
 
-	if (cur->mode == MODE_TILING) {
-		cur->mode = MODE_FLOATING;
-		tile();
-	}
+	if (cur->mode == MODE_TILING)
+		win_float(cur);
 
 	XMoveResizeWindow(d, mouse.subwindow,
 			wx + (mouse.button == 1 ? xd : 0),
@@ -97,7 +95,7 @@ void win_mode(const Arg arg)
 	if (cur) {
 		switch (cur->mode) {
 		case MODE_TILING:
-			cur->mode = MODE_FLOATING;
+			win_float(cur);
 			break;
 		case MODE_FLOATING:
 			cur->mode = MODE_TILING;
@@ -199,13 +197,22 @@ void win_center(const Arg arg)
 	if (!cur)
 		return;
 
-	if (cur->mode == MODE_TILING) {
-		cur->mode = MODE_FLOATING;
-		tile();
-	}
+	win_float(cur);
 
 	win_size(cur->w, &(int) { 0 }, &(int) { 0 }, &ww, &wh);
 	XMoveWindow(d, cur->w, (sw - ww) / 2, (sh - wh) / 2);
+}
+
+void win_float(client *c)
+{
+	if (c->mode == MODE_TILING) {
+		c->mode = MODE_FLOATING;
+		if (master[ws] == c) {
+			master[ws] = NULL;
+			master[ws] = find_master();
+		}
+		tile();
+	}
 }
 
 void win_fs(const Arg arg)
@@ -281,9 +288,11 @@ void win_prev_tiled(const Arg arg)
 	for (i = 0; i < num - 1; ++i) {
 		if (cs[i + 1] == cur) {
 			win_focus(cs[i]);
-			break;
+			return;
 		}
 	}
+
+	win_focus(cur->prev);
 }
 
 void win_next_tiled(const Arg arg)
@@ -303,9 +312,11 @@ void win_next_tiled(const Arg arg)
 	for (i = 1; i < num; ++i) {
 		if (cs[i - 1] == cur) {
 			win_focus(cs[i]);
-			break;
+			return;
 		}
 	}
+
+	win_focus(cur->next);
 }
 
 void ws_go(const Arg arg)
@@ -435,6 +446,16 @@ unsigned int tiled_clients(struct client **cs, const unsigned int clientc)
 	}
 
 	return i;
+}
+
+client *find_master()
+{
+	struct client *clients[MAX_CLIENTS] = { NULL };
+	const int num = tiled_clients(clients, MAX_CLIENTS);
+
+	if (num > 0) return clients[0];
+
+	return NULL;
 }
 
 void tile(void)
