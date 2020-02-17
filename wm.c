@@ -69,24 +69,16 @@ void notify_motion(XEvent *e)
 	int xd = e->xbutton.x_root - mouse.x_root;
 	int yd = e->xbutton.y_root - mouse.y_root;
 
-	int nx, ny, nw, nh;
-	nx = wx + (mouse.button == 1 ? xd : 0);
-	ny = wy + (mouse.button == 1 ? yd : 0);
-	nw = ww + (mouse.button == 3 ? xd : 0);
-	nh = wh + (mouse.button == 3 ? yd : 0);
-
-	nw = (nw > sw - (MARGIN * 2) ? sw - (MARGIN * 2) : nw);
-	nh = (nh > sh - (MARGIN * 2) ? sh - (MARGIN * 2) : nh);
-
-	nx = (nx < MARGIN ? MARGIN : (nx > sw - MARGIN - nw ? sw - MARGIN - nw : nx));
-	ny = (ny < MARGIN ? MARGIN : (ny > sh - MARGIN - nh ? sh - MARGIN - nh : ny));
-
 	if (cur->mode == MODE_TILING) {
 		cur->mode = MODE_FLOATING;
 		tile();
 	}
 
-	XMoveResizeWindow(d, mouse.subwindow, nx, ny, nw, nh);
+	XMoveResizeWindow(d, mouse.subwindow,
+			wx + (mouse.button == 1 ? xd : 0),
+			wy + (mouse.button == 1 ? yd : 0),
+			ww + (mouse.button == 3 ? xd : 0),
+			wh + (mouse.button == 3 ? yd : 0));
 }
 
 void win_mode(const Arg arg)
@@ -402,7 +394,10 @@ void tile(void)
 	int num = 0;
 
 	master = list;
-	while (master && !can_tile(master) && master->next != list) master = master->next;
+
+	while (master && !can_tile(master) && master->next != list)
+		master = master->next;
+
 	if (!can_tile(master)) master = NULL;
 
 	for win if (can_tile(c) && c != master) ++num;
