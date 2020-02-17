@@ -10,12 +10,14 @@
 
 #include "wm.h"
 
-static client *list = { 0 }, *ws_list[10] = { 0 }, *cur;
+#define WS 10
+
+static client *list = { 0 }, *ws_list[WS] = { 0 }, *cur;
 
 static int ws = 1, sw, sh, wx, wy, numlock = 0;
 static unsigned int ww, wh;
 
-static unsigned int master_size;
+static unsigned int ws_master_size[WS];
 static client *master;
 
 static Display *d;
@@ -384,8 +386,9 @@ void quit(const Arg arg)
 
 void resize_master(const Arg arg)
 {
-	master_size += arg.i;
-	if (master_size < 50) master_size = 50;
+	if (cur)
+	ws_master_size[ws] += arg.i;
+	if (ws_master_size[ws] < 50) ws_master_size[ws] = 50;
 	tile();
 }
 
@@ -407,9 +410,9 @@ void tile(void)
 
 	if (master) {
 		if (num > 0) {
-			mw -= master_size + GAP;
-			XMoveResizeWindow(d, master->w, x, y, master_size, mh);
-			x += master_size + GAP;
+			mw -= ws_master_size[ws] + GAP;
+			XMoveResizeWindow(d, master->w, x, y, ws_master_size[ws], mh);
+			x += ws_master_size[ws] + GAP;
 		} else {
 			XMoveResizeWindow(d, master->w, x, y, mw, mh);
 		}
@@ -439,7 +442,9 @@ int main(void)
 	Window root = RootWindow(d, s);
 	sw = XDisplayWidth(d, s);
 	sh = XDisplayHeight(d, s);
-	master_size = sw / 2;
+
+	for (int i = 0; i < WS; ++i)
+		ws_master_size[ws] = sw / 2;
 
 	XSelectInput(d, root, SubstructureRedirectMask);
 	XDefineCursor(d, root, XCreateFontCursor(d, 68));
