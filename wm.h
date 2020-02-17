@@ -26,8 +26,8 @@ struct key {
 };
 
 enum client_mode {
-	MODE_TILING,
-	MODE_FLOATING
+	MODE_FLOATING,
+	MODE_TILING
 };
 
 typedef struct client {

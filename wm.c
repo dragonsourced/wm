@@ -399,6 +399,7 @@ void tile(void)
 
 	master = list;
 	while (master && !can_tile(master) && master->next != list) master = master->next;
+	if (!can_tile(master)) master = NULL;
 
 	for win if (can_tile(c) && c != master) ++num;
 
