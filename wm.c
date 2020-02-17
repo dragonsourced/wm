@@ -465,6 +465,15 @@ void tile(void)
 		}
 		break;
 	case TILE_VERTICAL:
+		XMoveResizeWindow(d, clients[0]->w, x, y, mw - GAP, ws_master_size[ws]);
+		y  += ws_master_size[ws] + GAP;
+		h = mh - ws_master_size[ws] - GAP;
+		w = mw/(num - 1);
+		for (int i = 1; i < num; ++i) {
+			XMoveResizeWindow(d, clients[i]->w, x, y, w - GAP, h - GAP);
+			x += w;
+		}
+
 		break;
 tiled:
 	default:
