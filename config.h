@@ -28,6 +28,11 @@ const char *voldown[] = { "chvol", "5%-", 0 };
 const char *volup[]   = { "chvol", "5%+", 0 };
 const char *volmute[] = { "chvol", "toggle", 0 };
 
+static struct wm_class default_modes[] = {
+	{ "Gimp", MODE_FLOATING },
+	{ "mpv",  MODE_FLOATING },
+};
+
 static struct key keys[] = {
 	{ MOD,             XK_q,      win_kill,   {0} },
 	{ MOD | ShiftMask, XK_Return, win_mode,   {0} },

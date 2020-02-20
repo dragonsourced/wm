@@ -1,12 +1,15 @@
 // sowm - An itsy bitsy floating window manager.
 
 #include <X11/Xlib.h>
+#include <X11/Xutil.h>
 #include <X11/XF86keysym.h>
 #include <X11/keysym.h>
 #include <X11/XKBlib.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <unistd.h>
+
+#include <string.h>
 
 #include "wm.h"
 
@@ -36,6 +39,8 @@ static void (*events[LASTEvent])(XEvent *e) = {
 };
 
 #include "config.h"
+
+static int num_default_modes = sizeof(default_modes) / sizeof(struct wm_class);
 
 void win_focus(client *c)
 {
@@ -135,7 +140,7 @@ int can_tile(client *c)
 	return c && !c->f && c->mode == MODE_TILING;
 }
 
-void win_add(Window w)
+client *win_add(Window w)
 {
 	client *c;
 
@@ -157,6 +162,8 @@ void win_add(Window w)
 
 	ws_save(ws);
 	tile();
+
+	return c;
 }
 
 void win_del(Window w)
@@ -359,14 +366,35 @@ void configure_request(XEvent *e)
 
 void map_request(XEvent *e)
 {
+	XClassHint *clshints;
+	client *c;
+
 	Window w = e->xmaprequest.window;
 
 	XSelectInput(d, w, StructureNotifyMask | EnterWindowMask);
 	win_size(w, &wx, &wy, &ww, &wh);
-	win_add(w);
+	c = win_add(w);
 	cur = list->prev;
 
-	if (wx + wy == 0) win_center((Arg){0});
+	clshints = XAllocClassHint();
+	XGetClassHint(d, w, clshints);
+
+	for (int i = 0; i < num_default_modes; ++i) {
+		if (!strcmp(default_modes[i].class, clshints->res_name) ||
+		    !strcmp(default_modes[i].class, clshints->res_class)) {
+			c->mode = default_modes[i].mode;
+
+			if (c->mode == MODE_FLOATING && wx + wy == 0)
+				win_center((Arg){0});
+
+			goto done;
+		}
+	}
+
+	c->mode = MODE_TILING;
+
+done:
+	XFree(clshints);
 
 	XMapWindow(d, w);
 	win_focus(list->prev);
