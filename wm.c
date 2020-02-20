@@ -380,8 +380,8 @@ void map_request(XEvent *e)
 	XGetClassHint(d, w, clshints);
 
 	for (int i = 0; i < num_default_modes; ++i) {
-		if (!strcmp(default_modes[i].class, clshints->res_name) ||
-		    !strcmp(default_modes[i].class, clshints->res_class)) {
+		if ((clshints->res_name  && !strcmp(default_modes[i].class, clshints->res_name)) ||
+		    (clshints->res_class && !strcmp(default_modes[i].class, clshints->res_class))) {
 			c->mode = default_modes[i].mode;
 
 			if (c->mode == MODE_FLOATING && wx + wy == 0)
